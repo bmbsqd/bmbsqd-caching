@@ -1,0 +1,10 @@
+C:\Users\jonas\Desktop\projects\josephs-toiletries\Bmbsqd.Caching\bin\Debug\Bmbsqd.Caching.dll
+C:\Users\jonas\Desktop\projects\josephs-toiletries\Bmbsqd.Caching\bin\Debug\Bmbsqd.Caching.pdb
+C:\Users\jonas\Desktop\projects\josephs-toiletries\Bmbsqd.Caching\obj\Debug\Bmbsqd.Caching.csprojResolveAssemblyReference.cache
+C:\Users\jonas\Desktop\projects\josephs-toiletries\Bmbsqd.Caching\obj\Debug\Bmbsqd.Caching.dll
+C:\Users\jonas\Desktop\projects\josephs-toiletries\Bmbsqd.Caching\obj\Debug\Bmbsqd.Caching.pdb
+C:\Users\jonas\Desktop\projects\bmbsqd\Bmbsqd.Caching\Bmbsqd.Caching\bin\Debug\Bmbsqd.Caching.dll
+C:\Users\jonas\Desktop\projects\bmbsqd\Bmbsqd.Caching\Bmbsqd.Caching\bin\Debug\Bmbsqd.Caching.pdb
+C:\Users\jonas\Desktop\projects\bmbsqd\Bmbsqd.Caching\Bmbsqd.Caching\obj\Debug\Bmbsqd.Caching.csprojResolveAssemblyReference.cache
+C:\Users\jonas\Desktop\projects\bmbsqd\Bmbsqd.Caching\Bmbsqd.Caching\obj\Debug\Bmbsqd.Caching.dll
+C:\Users\jonas\Desktop\projects\bmbsqd\Bmbsqd.Caching\Bmbsqd.Caching\obj\Debug\Bmbsqd.Caching.pdb

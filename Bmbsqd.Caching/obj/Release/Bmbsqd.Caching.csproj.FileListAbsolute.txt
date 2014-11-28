@@ -1,0 +1,4 @@
+C:\Users\jonas\Desktop\projects\josephs-toiletries\Bmbsqd.Caching\bin\Release\Bmbsqd.Caching.dll
+C:\Users\jonas\Desktop\projects\josephs-toiletries\Bmbsqd.Caching\bin\Release\Bmbsqd.Caching.pdb
+C:\Users\jonas\Desktop\projects\josephs-toiletries\Bmbsqd.Caching\obj\Release\Bmbsqd.Caching.dll
+C:\Users\jonas\Desktop\projects\josephs-toiletries\Bmbsqd.Caching\obj\Release\Bmbsqd.Caching.pdb

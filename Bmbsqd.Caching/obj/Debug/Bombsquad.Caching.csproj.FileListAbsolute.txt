@@ -1,5 +1,0 @@
-C:\Users\Jonas Frost\Desktop\projects\dimachosting\plingbox\Bombsquad.Caching\bin\Debug\Bombsquad.Caching.dll
-C:\Users\Jonas Frost\Desktop\projects\dimachosting\plingbox\Bombsquad.Caching\bin\Debug\Bombsquad.Caching.pdb
-C:\Users\Jonas Frost\Desktop\projects\dimachosting\plingbox\Bombsquad.Caching\obj\Debug\Bombsquad.Caching.csprojResolveAssemblyReference.cache
-C:\Users\Jonas Frost\Desktop\projects\dimachosting\plingbox\Bombsquad.Caching\obj\Debug\Bombsquad.Caching.dll
-C:\Users\Jonas Frost\Desktop\projects\dimachosting\plingbox\Bombsquad.Caching\obj\Debug\Bombsquad.Caching.pdb

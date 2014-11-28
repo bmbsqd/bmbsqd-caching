@@ -1,9 +1,0 @@
-C:\Users\Jonas Frost\Desktop\projects\dimachosting\plingbox\Bombsquad.Caching.Tests\bin\Debug\Bombsquad.Caching.Tests.dll
-C:\Users\Jonas Frost\Desktop\projects\dimachosting\plingbox\Bombsquad.Caching.Tests\bin\Debug\Bombsquad.Caching.Tests.pdb
-C:\Users\Jonas Frost\Desktop\projects\dimachosting\plingbox\Bombsquad.Caching.Tests\bin\Debug\Bombsquad.Caching.dll
-C:\Users\Jonas Frost\Desktop\projects\dimachosting\plingbox\Bombsquad.Caching.Tests\bin\Debug\nunit.framework.dll
-C:\Users\Jonas Frost\Desktop\projects\dimachosting\plingbox\Bombsquad.Caching.Tests\bin\Debug\Bombsquad.Caching.pdb
-C:\Users\Jonas Frost\Desktop\projects\dimachosting\plingbox\Bombsquad.Caching.Tests\bin\Debug\nunit.framework.xml
-C:\Users\Jonas Frost\Desktop\projects\dimachosting\plingbox\Bombsquad.Caching.Tests\obj\Debug\Bombsquad.Caching.Tests.csprojResolveAssemblyReference.cache
-C:\Users\Jonas Frost\Desktop\projects\dimachosting\plingbox\Bombsquad.Caching.Tests\obj\Debug\Bombsquad.Caching.Tests.dll
-C:\Users\Jonas Frost\Desktop\projects\dimachosting\plingbox\Bombsquad.Caching.Tests\obj\Debug\Bombsquad.Caching.Tests.pdb

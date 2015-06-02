@@ -34,10 +34,7 @@ namespace Bmbsqd.Caching
 				return _task;
 			}
 
-			public bool IsMaterialized
-			{
-				get { return _task.IsCompleted; }
-			}
+			public bool IsMaterialized => _task.IsCompleted;
 
 			public bool TryUpdateValue( Task<TValue> value )
 			{
@@ -50,10 +47,7 @@ namespace Bmbsqd.Caching
 				return TryUpdateValue( Task.FromResult( value ) );
 			}
 
-			public Task<TValue> UnsafeTask
-			{
-				get { return _task; }
-			}
+			public Task<TValue> UnsafeTask => _task;
 
 			public void SetFactory( Func<TKey, Task<TValue>> factory )
 			{

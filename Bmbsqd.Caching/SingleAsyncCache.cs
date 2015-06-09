@@ -10,7 +10,10 @@ namespace Bmbsqd.Caching
 		void Invalidate();
 	}
 
-	public class SingleAsyncCache<T> : ICacheExpire, ISingleAsyncCache<T>
+	public class SingleAsyncCache<T> : 
+		CacheBase<T>,
+		ICacheExpire, 
+		ISingleAsyncCache<T>
 	{
 		private readonly long _ttl;
 		private long _expires;
@@ -39,8 +42,8 @@ namespace Bmbsqd.Caching
 				}
 			}
 			else if( IsExpired ) {
-				_task = factory();
 				_expires = Clock.Current() + _ttl;
+				TryRemove( Interlocked.Exchange( ref _task, factory() ) );
 			}
 
 			return t;
@@ -48,7 +51,21 @@ namespace Bmbsqd.Caching
 
 		public void Invalidate()
 		{
-			Interlocked.Exchange( ref _task, null );
+			TryRemove( Interlocked.Exchange( ref _task, null ) );
+		}
+
+		private void TryRemove( Task<T> oldItem )
+		{
+			if( oldItem != null ) {
+				NotifyRemoved( oldItem );
+			}
+		}
+
+		protected virtual void NotifyRemoved( Task<T> item )
+		{
+			if( item.IsCompleted ) {
+				TryDispose( item.Result );
+			}
 		}
 
 		public void InvalidateExpiredItems()
@@ -62,6 +79,7 @@ namespace Bmbsqd.Caching
 
 		public void Dispose()
 		{
+			Invalidate();
 			_cacheTimer?.Dispose();
 		}
 	}

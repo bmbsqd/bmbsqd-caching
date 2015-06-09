@@ -6,7 +6,29 @@ using System.Linq;
 
 namespace Bmbsqd.Caching
 {
-	public class CacheBase<TKey, TValue, TEntry> :
+
+	public abstract class CacheBase<TValue>
+	{
+		private static readonly bool _isReferenceType = !typeof( TValue ).IsValueType;
+		protected static void TryDispose( TValue value )
+		{
+			if( _isReferenceType ) {
+				var disposable = value as IDisposable;
+				if( disposable != null ) {
+					try {
+						disposable.Dispose();
+					}
+					catch( Exception e ) {
+						Trace.TraceError( "{1} when disposing {0}: {2}", disposable, e.GetType().Name, e.Message );
+					}
+				}
+			}
+		}
+
+	}
+
+	public abstract class CacheBase<TKey, TValue, TEntry> :
+		CacheBase<TValue>,
 		ICacheExpire,
 		ICacheInvalidate<TKey>
 		where TEntry : CacheBase<TKey, TValue, TEntry>.EntryBase
@@ -42,7 +64,7 @@ namespace Bmbsqd.Caching
 
 		}
 
-		public CacheBase( TimeSpan ttl, bool removeExpiredItems = true )
+		protected CacheBase( TimeSpan ttl, bool removeExpiredItems = true )
 		{
 			_ttl = ttl;
 			_items = new ConcurrentDictionary<TKey, TEntry>();
@@ -119,19 +141,6 @@ namespace Bmbsqd.Caching
 
 		protected virtual void NotifyAdded( TKey key )
 		{
-		}
-
-		protected static void TryDispose( object value )
-		{
-			if( !typeof( TValue ).IsValueType ) {
-				var disposable = value as IDisposable;
-				try {
-					disposable?.Dispose();
-				}
-				catch( Exception e ) {
-					Trace.TraceError( "{1} when disposing {0}: {2}", disposable, e.GetType().Name, e.Message );
-				}
-			}
 		}
 
 		public void Dispose()

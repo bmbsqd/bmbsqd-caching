@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.Remoting.Messaging;
 using System.Threading.Tasks;
 
 namespace Bmbsqd.Caching
@@ -10,6 +11,8 @@ namespace Bmbsqd.Caching
 
 	public class AsyncCache<TKey, TValue> : CacheBase<TKey, TValue, AsyncCache<TKey, TValue>.Entry>, IAsyncCache<TKey, TValue>
 	{
+		private readonly bool _returnExpiredItems;
+
 		public class Entry : EntryBase
 		{
 			private Func<TKey, Task<TValue>> _factory;
@@ -61,9 +64,10 @@ namespace Bmbsqd.Caching
 			}
 		}
 
-		public AsyncCache( TimeSpan ttl, bool removeExpiredItems = true )
+		public AsyncCache( TimeSpan ttl, bool removeExpiredItems = true, bool returnExpiredItems = true )
 			: base( ttl, removeExpiredItems )
 		{
+			_returnExpiredItems = returnExpiredItems;
 		}
 
 		public Task<TValue> GetOrAddAsync( TKey key, Func<TKey, Task<TValue>> factory )
@@ -78,6 +82,9 @@ namespace Bmbsqd.Caching
 			}
 			else if( entry.IsExpired( Clock.Current() ) ) {
 				entry.UpdateFrom( created );
+				if( !_returnExpiredItems ) {
+					result = entry.GetTask();
+				}
 			}
 
 			return result;

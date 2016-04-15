@@ -6,6 +6,7 @@ namespace Bmbsqd.Caching
 	public interface IAsyncCache<TKey, TValue> : ICacheInvalidate<TKey>, ICacheUpdate<TKey, TValue>, ICacheUpdate<TKey, Task<TValue>>
 	{
 		Task<TValue> GetOrAddAsync( TKey key, Func<TKey, Task<TValue>> factory );
+		Task<TValue> AddOrUpdateAsync( TKey key, Func<TKey, Task<TValue>> factory );
 	}
 
 	public class AsyncCache<TKey, TValue> : CacheBase<TKey, TValue, AsyncCache<TKey, TValue>.Entry>, IAsyncCache<TKey, TValue>
@@ -75,12 +76,24 @@ namespace Bmbsqd.Caching
 
 			if( entry == created ) {
 				NotifyAdded( key );
-			}
-			else if( entry.IsExpired( Clock.Current() ) ) {
+			} else if( entry.IsExpired( Clock.Current() ) ) {
 				entry.UpdateFrom( created );
 			}
 
 			return result;
+		}
+
+		public Task<TValue> AddOrUpdateAsync( TKey key, Func<TKey, Task<TValue>> factory )
+		{
+			var result = _items.AddOrUpdate( key,
+				k => new Entry( k, factory, GetNewExpiration() ),
+				( k, entry ) => {
+					entry.SetFactory( factory );
+					entry.UpdateTtl( GetNewExpiration() );
+					return entry;
+				} );
+
+			return result.GetTask();
 		}
 
 		public bool TryUpdate( TKey key, Task<TValue> value )

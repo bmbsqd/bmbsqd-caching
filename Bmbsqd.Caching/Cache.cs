@@ -5,6 +5,7 @@ namespace Bmbsqd.Caching
 	public interface ICache<TKey, TValue> : ICacheInvalidate<TKey>, ICacheUpdate<TKey, TValue>
 	{
 		TValue GetOrAdd( TKey key, Func<TKey, TValue> factory );
+		TValue AddOrUpdate( TKey key, Func<TKey, TValue> factory );
 	}
 
 	public class Cache<TKey, TValue> : CacheBase<TKey, TValue, Cache<TKey, TValue>.Entry>, ICache<TKey, TValue>
@@ -39,6 +40,11 @@ namespace Bmbsqd.Caching
 				return true;
 			}
 
+			public void SetFactory( Func<TKey, TValue> factory )
+			{
+				_factory = factory;
+			}
+
 			public TValue UnsafeValue => _value;
 		}
 
@@ -56,6 +62,19 @@ namespace Bmbsqd.Caching
 			}
 
 			return entry.GetValue();
+		}
+
+		public TValue AddOrUpdate( TKey key, Func<TKey, TValue> factory )
+		{
+			var result = _items.AddOrUpdate( key,
+				k => new Entry( k, factory, GetNewExpiration() ),
+				( k, entry ) => {
+					entry.SetFactory( factory );
+					entry.UpdateTtl( GetNewExpiration() );
+					return entry;
+				} );
+
+			return result.GetValue();
 		}
 
 		protected override void NotifyRemoved( TKey key, Entry entry )

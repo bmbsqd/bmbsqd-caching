@@ -36,6 +36,26 @@ namespace Bmbsqd.Caching.Tests
 			Assert.That( await c.GetOrAddAsync( "hello", k => Task.FromResult( "universe" ) ), Is.EqualTo( "universe" ) );
 		}
 
+		[Test]
+		public async Task ReturnExpiredItems()
+		{
+			var c = new AsyncCache<string, string>( TimeSpan.FromSeconds( 0.1 ) );
+			Assert.That( await c.GetOrAddAsync( "hello", async k => "world" ), Is.EqualTo( "world" ) );
+			Assert.That( await c.GetOrAddAsync( "hello", async k => "no-no-no" ), Is.EqualTo( "world" ) ); // should still be "world"
+			await Task.Delay( TimeSpan.FromSeconds( 0.5 ) );
+			Assert.That( await c.GetOrAddAsync( "hello", async k => "universe" ), Is.EqualTo( "world" ) );
+		}
+
+		[Test]
+		public async Task DontReturnExpiredItems()
+		{
+			var c = new AsyncCache<string, string>( TimeSpan.FromSeconds( 0.1 ), returnExpiredItems: false );
+			Assert.That( await c.GetOrAddAsync( "hello", async k => "world" ), Is.EqualTo( "world" ) );
+			Assert.That( await c.GetOrAddAsync( "hello", async k => "no-no-no" ), Is.EqualTo( "world" ) ); // should still be "world"
+			await Task.Delay( TimeSpan.FromSeconds( 0.5 ) );
+			Assert.That( await c.GetOrAddAsync( "hello", async k => "universe" ), Is.EqualTo( "universe" ) );
+		}
+
 
 		[Test]
 		public async Task AsyncCache2()

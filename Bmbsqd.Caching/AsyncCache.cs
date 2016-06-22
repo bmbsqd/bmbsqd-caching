@@ -6,6 +6,7 @@ namespace Bmbsqd.Caching
 {
 	public interface IAsyncCache<TKey, TValue> : ICacheInvalidate<TKey>, ICacheUpdate<TKey, TValue>, ICacheUpdate<TKey, Task<TValue>>
 	{
+		Task<TValue> GetOrAddAsync( TKey key, Func<TKey, Task<TValue>> factory, Func<TKey, Task<TValue>> fastFactory );
 		Task<TValue> GetOrAddAsync( TKey key, Func<TKey, Task<TValue>> factory );
 		Task<TValue> AddOrUpdateAsync( TKey key, Func<TKey, Task<TValue>> factory );
 	}
@@ -74,8 +75,12 @@ namespace Bmbsqd.Caching
 
 			public void UpdateFrom( Entry entry )
 			{
-				_factory = entry._factory;
-				_validUntil = entry._validUntil;
+				lock( this ) {
+					// this order is important
+					_fastFactory = entry._fastFactory;
+					_factory = entry._factory;
+					_validUntil = entry._validUntil;
+				}
 			}
 		}
 
@@ -85,26 +90,7 @@ namespace Bmbsqd.Caching
 			_returnExpiredItems = returnExpiredItems;
 		}
 
-		public Task<TValue> GetOrAddAsync( TKey key, Func<TKey, Task<TValue>> factory )
-		{
-			var created = new Entry( key, factory, null, GetNewExpiration() );
-			var entry = _items.GetOrAdd( key, created );
-
-			var result = entry.GetTask();
-
-			if( ReferenceEquals( entry, created ) ) {
-				NotifyAdded( key );
-			} else if( entry.IsExpired( Clock.Current() ) ) {
-				entry.UpdateFrom( created );
-				var createdTask = entry.GetTask();
-				if( !_returnExpiredItems || createdTask.IsCompleted ) {
-					result = createdTask;
-				}
-			}
-
-			return result;
-		}
-
+		public Task<TValue> GetOrAddAsync( TKey key, Func<TKey, Task<TValue>> factory ) => GetOrAddAsync( key, factory, null );
 		public Task<TValue> GetOrAddAsync( TKey key, Func<TKey, Task<TValue>> factory, Func<TKey, Task<TValue>> fastFactory )
 		{
 			var created = new Entry( key, factory, fastFactory, GetNewExpiration() );

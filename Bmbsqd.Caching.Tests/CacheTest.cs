@@ -39,11 +39,16 @@ namespace Bmbsqd.Caching.Tests
 		[Test]
 		public async Task ReturnExpiredItems()
 		{
-			var c = new AsyncCache<string, string>( TimeSpan.FromSeconds( 0.1 ) );
+			var c = new AsyncCache<string, string>( TimeSpan.FromSeconds( 0.1 ), false, true );
 			Assert.That( await c.GetOrAddAsync( "hello", k => Task.FromResult("world") ), Is.EqualTo( "world" ) );
 			Assert.That( await c.GetOrAddAsync( "hello", k => Task.FromResult("no-no-no") ), Is.EqualTo( "world" ) ); // should still be "world"
 			await Task.Delay( TimeSpan.FromSeconds( 0.5 ) );
-			Assert.That( await c.GetOrAddAsync( "hello", k => Task.FromResult("universe") ), Is.EqualTo( "world" ) );
+			Assert.That( await c.GetOrAddAsync( "hello", async k => {
+				// A completed task is always returned
+				// So to prevent that, we have to delay here :-)
+				await Task.Delay( 25 );
+				return "universe";
+			} ), Is.EqualTo( "world" ) );
 		}
 
 		[Test]
@@ -60,14 +65,63 @@ namespace Bmbsqd.Caching.Tests
 		[Test]
 		public async Task AsyncCache2()
 		{
-			var c = new AsyncCache<string, string>( TimeSpan.FromMilliseconds( 100 ), false );
+			var c = new AsyncCache<string, string>( TimeSpan.FromMilliseconds( 100 ), false, true );
 
 			Assert.That( await c.GetOrAddAsync( "hello", k => Task.FromResult( "world" ) ), Is.EqualTo( "world" ) );
+
 			await Task.Delay( TimeSpan.FromMilliseconds( 200 ) );
-			Assert.That( await c.GetOrAddAsync( "hello", k => Task.FromResult( "universe" ) ), Is.EqualTo( "world" ) );
+			Assert.That( await c.GetOrAddAsync( "hello", async k => {
+				// A completed task is always returned
+				// So to prevent that, we have to delay here :-)
+				await Task.Delay( 25 );
+				return "universe";
+			} ), Is.EqualTo( "world" ) );
+
 			await Task.Delay( TimeSpan.FromMilliseconds( 200 ) );
-			Assert.That( await c.GetOrAddAsync( "hello", k => Task.FromResult( "universe" ) ), Is.EqualTo( "universe" ) );
+			Assert.That( await c.GetOrAddAsync( "hello", async k => {
+				// A completed task is always returned
+				// So to prevent that, we have to delay here :-)
+				await Task.Delay( 25 );
+				return "universe";
+			} ), Is.EqualTo( "universe" ) );
 		}
+
+
+		[Test]
+		public async Task FastTaskFirstThenSlowTask()
+		{
+			var c = new AsyncCache<string, string>( TimeSpan.FromMilliseconds( 2000 ), false, true );
+
+			// fast task returns world
+			// slow task returns universe
+			Assert.That( await c.GetOrAddAsync( "hello", async k => {
+				// A completed task is always returned
+				// So to prevent that, we have to delay here :-)
+				await Task.Delay( 25 );
+				return "universe";
+			}, k => Task.FromResult( "world" ) ), Is.EqualTo( "world" ) );
+
+
+			// Wait for slow task to materialize
+			await Task.Delay( 200 );
+
+			// Make sure that the cache slow task is now returning the expected 'universe'
+			Assert.That( await c.GetOrAddAsync( "hello", k => Task.FromResult( "this-should-never-be-materialized" ) ), Is.EqualTo( "universe" ) );
+		}
+
+		[Test]
+		public async Task NullFastTaskShouldBeIgnored()
+		{
+			var c = new AsyncCache<string, string>( TimeSpan.FromMilliseconds( 2000 ), false, true );
+
+			Assert.That( await c.GetOrAddAsync( "hello", async k => {
+				// A completed task is always returned
+				// So to prevent that, we have to delay here :-)
+				await Task.Delay( 25 );
+				return "universe";
+			}, k => null ), Is.EqualTo( "universe" ) );
+		}
+
 
 		[Test]
 		public async Task SingleAsyncCache()

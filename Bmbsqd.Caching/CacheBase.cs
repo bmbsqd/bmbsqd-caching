@@ -37,6 +37,9 @@ namespace Bmbsqd.Caching
 		protected readonly TimeSpan _ttl;
 		private readonly IDisposable _cacheTimer;
 
+		public TimeSpan Ttl => _ttl;
+		public long Count => _items.Count;
+
 		public abstract class EntryBase
 		{
 			protected TKey _key;

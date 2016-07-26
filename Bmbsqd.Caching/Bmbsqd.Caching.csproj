@@ -39,6 +39,8 @@
     <Compile Include="AsyncTaskDisposableUtils.cs" />
     <Compile Include="Cache.cs" />
     <Compile Include="CacheBase.cs" />
+    <Compile Include="CacheFactory.cs" />
+    <Compile Include="CacheRepository.cs" />
     <Compile Include="CacheTimer.cs" />
     <Compile Include="Clock.cs" />
     <Compile Include="ICacheExpire.cs" />

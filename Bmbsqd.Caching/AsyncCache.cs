@@ -1,10 +1,9 @@
 using System;
-using System.Runtime.Remoting.Messaging;
 using System.Threading.Tasks;
 
 namespace Bmbsqd.Caching
 {
-	public interface IAsyncCache<TKey, TValue> : ICacheInvalidate<TKey>, ICacheUpdate<TKey, TValue>, ICacheUpdate<TKey, Task<TValue>>
+	public interface IAsyncCache<TKey, TValue> : ICache, ICacheInvalidate<TKey>, ICacheUpdate<TKey, TValue>, ICacheUpdate<TKey, Task<TValue>>
 	{
 		Task<TValue> GetOrAddAsync( TKey key, Func<TKey, Task<TValue>> factory, Func<TKey, Task<TValue>> fastFactory );
 		Task<TValue> GetOrAddAsync( TKey key, Func<TKey, Task<TValue>> factory );

@@ -2,27 +2,25 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Bmbsqd.Caching
-{
-	public interface ISingleAsyncCache<T> : IDisposable
-	{
+namespace Bmbsqd.Caching {
+	public interface ISingleAsyncCache<T> : ICache {
 		Task<T> GetOrAddAsync( Func<Task<T>> factory );
 		void Invalidate();
 	}
 
-	public class SingleAsyncCache<T> : 
-		CacheBase<T>,
-		ICacheExpire, 
-		ISingleAsyncCache<T>
-	{
-		private readonly long _ttl;
+	public class SingleAsyncCache<T> : CacheBase<T>,
+		ICacheExpire,
+		ISingleAsyncCache<T> {
+		private readonly TimeSpan _ttl;
 		private long _expires;
 		private Task<T> _task;
 		private readonly IDisposable _cacheTimer;
 
+		public TimeSpan Ttl => _ttl;
+
 		public SingleAsyncCache( TimeSpan ttl, bool removeExpired = true )
 		{
-			_ttl = ttl.Ticks;
+			_ttl = ttl;
 			if( removeExpired ) {
 				_cacheTimer = CacheTimer.Register( this );
 			}
@@ -37,12 +35,11 @@ namespace Bmbsqd.Caching
 					t = _task;
 					if( t == null ) {
 						_task = t = factory();
-						_expires = Clock.Current() + _ttl;
+						_expires = Clock.Current() + _ttl.Ticks;
 					}
 				}
-			}
-			else if( IsExpired ) {
-				_expires = Clock.Current() + _ttl;
+			} else if( IsExpired ) {
+				_expires = Clock.Current() + _ttl.Ticks;
 				TryRemove( Interlocked.Exchange( ref _task, factory() ) );
 			}
 
@@ -82,5 +79,8 @@ namespace Bmbsqd.Caching
 			Invalidate();
 			_cacheTimer?.Dispose();
 		}
+
+		void ICacheInvalidate.InvalidateAll() => Invalidate();
+		long ICache.Count => 1L;
 	}
 }

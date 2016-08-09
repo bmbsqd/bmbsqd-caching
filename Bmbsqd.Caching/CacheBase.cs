@@ -4,15 +4,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace Bmbsqd.Caching
-{
+namespace Bmbsqd.Caching {
 
-	public abstract class CacheBase<TValue>
-	{
-		private static readonly bool _isReferenceType = !typeof( TValue ).IsValueType;
+	public abstract class CacheBase<TValue> {
+		private static readonly bool _isDisposable = typeof( TValue ).GetInterfaces().Any( x => x == typeof( IDisposable ) );
 		protected static void TryDispose( TValue value )
 		{
-			if( _isReferenceType ) {
+			if( _isDisposable ) {
 				var disposable = value as IDisposable;
 				if( disposable != null ) {
 					try {
@@ -31,8 +29,7 @@ namespace Bmbsqd.Caching
 		CacheBase<TValue>,
 		ICacheExpire,
 		ICacheInvalidate<TKey>
-		where TEntry : CacheBase<TKey, TValue, TEntry>.EntryBase
-	{
+		where TEntry : CacheBase<TKey, TValue, TEntry>.EntryBase {
 		protected readonly ConcurrentDictionary<TKey, TEntry> _items;
 		protected readonly TimeSpan _ttl;
 		private readonly IDisposable _cacheTimer;
@@ -40,8 +37,7 @@ namespace Bmbsqd.Caching
 		public TimeSpan Ttl => _ttl;
 		public long Count => _items.Count;
 
-		public abstract class EntryBase
-		{
+		public abstract class EntryBase {
 			protected TKey _key;
 			protected long _validUntil;
 
@@ -76,15 +72,9 @@ namespace Bmbsqd.Caching
 			}
 		}
 
-		public bool Invalidate( TKey key )
-		{
-			return RemoveByKey( key );
-		}
+		public bool Invalidate( TKey key ) => RemoveByKey( key );
 
-		protected long GetNewExpiration()
-		{
-			return Clock.Current() + _ttl.Ticks;
-		}
+		protected long GetNewExpiration() => Clock.Current() + _ttl.Ticks;
 
 		public bool TryUpdate( TKey key, TValue value )
 		{
@@ -114,15 +104,11 @@ namespace Bmbsqd.Caching
 			return false;
 		}
 
-		private IEnumerable<KeyValuePair<TKey, TEntry>> EnumerateExpiredItems()
-		{
-			var time = Clock.Current();
-			return _items.Where( item => item.Value.IsExpired( time ) );
-		}
+		private IEnumerable<KeyValuePair<TKey, TEntry>> EnumerateExpiredItems( long time ) => _items.Where( item => item.Value.IsExpired( time ) );
 
 		public void InvalidateExpiredItems()
 		{
-			foreach( var item in EnumerateExpiredItems() ) {
+			foreach( var item in EnumerateExpiredItems( Clock.Current() ) ) {
 				TEntry entry;
 				if( _items.TryRemove( item.Key, out entry ) ) {
 					NotifyRemoved( item.Key, entry );
@@ -137,14 +123,8 @@ namespace Bmbsqd.Caching
 			}
 		}
 
-		protected virtual void NotifyRemoved( TKey key, TEntry entry )
-		{
-
-		}
-
-		protected virtual void NotifyAdded( TKey key )
-		{
-		}
+		protected virtual void NotifyRemoved( TKey key, TEntry entry ) { }
+		protected virtual void NotifyAdded( TKey key ) { }
 
 		public void Dispose()
 		{

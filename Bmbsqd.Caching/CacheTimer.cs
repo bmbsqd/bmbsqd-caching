@@ -16,10 +16,7 @@ namespace Bmbsqd.Caching
 			_caches = new HashSet<WeakReference<ICacheExpire>>();
 		}
 
-		private static void Sweep( object state )
-		{
-			InvalidateExpiredCacheItems();
-		}
+		private static void Sweep( object state ) => InvalidateExpiredCacheItems();
 
 		public static void InvalidateExpiredCacheItems()
 		{
@@ -54,10 +51,7 @@ namespace Bmbsqd.Caching
 				_reference = reference;
 			}
 
-			public void Dispose()
-			{
-				Remove( _reference );
-			}
+			public void Dispose() => Remove( _reference );
 		}
 
 		private static void Remove( WeakReference<ICacheExpire> reference )

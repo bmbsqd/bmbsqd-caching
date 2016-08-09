@@ -40,30 +40,22 @@ namespace Bmbsqd.Caching {
 				}
 			} else if( IsExpired ) {
 				_expires = Clock.Current() + _ttl.Ticks;
-				TryRemove( Interlocked.Exchange( ref _task, factory() ) );
+				NotifyIfRemoved( Interlocked.Exchange( ref _task, factory() ) );
 			}
 
 			return t;
 		}
 
-		public void Invalidate()
-		{
-			TryRemove( Interlocked.Exchange( ref _task, null ) );
-		}
+		public void Invalidate() => NotifyIfRemoved( Interlocked.Exchange( ref _task, null ) );
 
-		private void TryRemove( Task<T> oldItem )
+		private void NotifyIfRemoved( Task<T> oldItem )
 		{
 			if( oldItem != null ) {
 				NotifyRemoved( oldItem );
 			}
 		}
 
-		protected virtual void NotifyRemoved( Task<T> item )
-		{
-			if( item.IsCompleted ) {
-				TryDispose( item.Result );
-			}
-		}
+		protected virtual void NotifyRemoved( Task<T> item ) => item.ContinueWith( r => TryDispose( r.Result ), TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously );
 
 		public void InvalidateExpiredItems()
 		{
@@ -81,6 +73,6 @@ namespace Bmbsqd.Caching {
 		}
 
 		void ICacheInvalidate.InvalidateAll() => Invalidate();
-		long ICache.Count => 1L;
+		long ICache.Count => _task == null ? 0 : 1;
 	}
 }

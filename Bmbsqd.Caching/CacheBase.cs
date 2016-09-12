@@ -1,28 +1,23 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace Bmbsqd.Caching {
 
 	public abstract class CacheBase<TValue> {
-		private static readonly bool _isDisposable = typeof( TValue ).GetInterfaces().Any( x => x == typeof( IDisposable ) );
 		protected static void TryDispose( TValue value )
 		{
-			if( _isDisposable ) {
-				var disposable = value as IDisposable;
-				if( disposable != null ) {
-					try {
-						disposable.Dispose();
-					}
-					catch( Exception e ) {
-						Trace.TraceError( "{1} when disposing {0}: {2}", disposable, e.GetType().Name, e.Message );
-					}
+			var disposable = value as IDisposable;
+			if( disposable != null ) {
+				try {
+					disposable.Dispose();
+				}
+				catch( Exception e ) {
+					CacheLog.Error( e, "Error disposing {0}", disposable );
 				}
 			}
 		}
-
 	}
 
 	public abstract class CacheBase<TKey, TValue, TEntry> :

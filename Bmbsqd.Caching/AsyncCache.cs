@@ -138,7 +138,7 @@ namespace Bmbsqd.Caching
 		protected override void NotifyRemoved( TKey key, Entry entry )
 		{
 			var task = entry.UnsafeTask;
-			if( task != null && task.IsCompleted ) {
+			if( task != null && task.IsCompleted && !task.IsFaulted && !task.IsCanceled ) {
 				TryDispose( task.Result );
 			}
 			base.NotifyRemoved( key, entry );

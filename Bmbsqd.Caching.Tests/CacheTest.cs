@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -152,6 +153,30 @@ namespace Bmbsqd.Caching.Tests {
 			Assert.False( d.IsDisposed );
 			c.InvalidateAll();
 			Assert.True( d.IsDisposed );
+		}
+
+
+		[Fact]
+		public async Task MultiGetOrAdd()
+		{
+			var c = new AsyncCache<string, string>( TimeSpan.FromMinutes( 1 ), true );
+
+			var r = await c.GetOrAddAsync( "a", k => Task.FromResult( "foo" ) );
+			Assert.Equal( "foo", r );
+
+
+			var m = await c.GetOrAddAsync( new[] { "a", "b", "c" }, k => Task.FromResult<IDictionary<string, string>>( new Dictionary<string, string> {
+				{"a", null },
+				{"b", "bar" },
+				{"c", "baz" },
+			} ) );
+
+			Assert.Equal( 3, m.Count );
+			Assert.Contains( "a", m.Keys );
+			Assert.Contains( "b", m.Keys );
+			Assert.Contains( "c", m.Keys );
+
+			Assert.Contains( "foo", m["a"] );
 		}
 	}
 }

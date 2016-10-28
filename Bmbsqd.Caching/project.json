@@ -1,4 +1,5 @@
 ﻿{
+	"name":  "bmbsqd-caching",
 	"version": "1.0.0-*",
 	"copyright": "© Bombsquad Inc 2016",
 	"description": "Caching done right, with async support",
@@ -17,12 +18,16 @@
 	},
 
 	"dependencies": {
-		"NETStandard.Library": "1.6.0",
+		"System.Threading.Tasks": "4.0.11",
+		"System.Threading.Timer": "4.0.1",
+		"System.Threading": "4.0.11",
+		"System.Linq": "4.1.0",
+		"System.Collections.Concurrent": "4.0.12",
 		"JetBrains.Annotations": "10.1.5"
 	},
 
 	"frameworks": {
-		"netstandard1.6": {
+		"netstandard1.3": {
 			"imports": "dnxcore50"
 		}
 	}

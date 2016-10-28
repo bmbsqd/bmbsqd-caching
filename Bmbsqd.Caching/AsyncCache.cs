@@ -5,7 +5,6 @@ namespace Bmbsqd.Caching
 {
 	public interface IAsyncCache<TKey, TValue> : ICache, ICacheInvalidate<TKey>, ICacheUpdate<TKey, TValue>, ICacheUpdate<TKey, Task<TValue>>
 	{
-		Task<TValue> GetOrAddAsync( TKey key, Func<TKey, Task<TValue>> factory, Func<TKey, Task<TValue>> fastFactory );
 		Task<TValue> GetOrAddAsync( TKey key, Func<TKey, Task<TValue>> factory );
 		Task<TValue> AddOrUpdateAsync( TKey key, Func<TKey, Task<TValue>> factory );
 	}
@@ -17,15 +16,13 @@ namespace Bmbsqd.Caching
 		public class Entry : EntryBase
 		{
 			private Func<TKey, Task<TValue>> _factory;
-			private Func<TKey, Task<TValue>> _fastFactory;
 			private Task<TValue> _task;
 			private Task<TValue> _fastTask;
 
-			public Entry( TKey key, Func<TKey, Task<TValue>> factory, Func<TKey, Task<TValue>> fastFactory, long validUntil )
+			public Entry( TKey key, Func<TKey, Task<TValue>> factory, long validUntil )
 				: base( key, validUntil )
 			{
 				_factory = factory;
-				_fastFactory = fastFactory;
 			}
 
 			public Task<TValue> GetTask()
@@ -35,11 +32,6 @@ namespace Bmbsqd.Caching
 						if( _factory != null ) {
 							_task = _factory( _key );
 							_factory = null;
-						}
-
-						if( _fastFactory != null ) {
-							_fastTask = _fastFactory( _key );
-							_fastFactory = null;
 						}
 					}
 				}
@@ -76,7 +68,6 @@ namespace Bmbsqd.Caching
 			{
 				lock( this ) {
 					// this order is important
-					_fastFactory = entry._fastFactory;
 					_factory = entry._factory;
 					_validUntil = entry._validUntil;
 				}
@@ -89,10 +80,9 @@ namespace Bmbsqd.Caching
 			_returnExpiredItems = returnExpiredItems;
 		}
 
-		public Task<TValue> GetOrAddAsync( TKey key, Func<TKey, Task<TValue>> factory ) => GetOrAddAsync( key, factory, null );
-		public Task<TValue> GetOrAddAsync( TKey key, Func<TKey, Task<TValue>> factory, Func<TKey, Task<TValue>> fastFactory )
+		public Task<TValue> GetOrAddAsync( TKey key, Func<TKey, Task<TValue>> factory )
 		{
-			var created = new Entry( key, factory, fastFactory, GetNewExpiration() );
+			var created = new Entry( key, factory, GetNewExpiration() );
 			var entry = _items.GetOrAdd( key, created );
 
 			var result = entry.GetTask();
@@ -113,7 +103,7 @@ namespace Bmbsqd.Caching
 		public Task<TValue> AddOrUpdateAsync( TKey key, Func<TKey, Task<TValue>> factory )
 		{
 			var result = _items.AddOrUpdate( key,
-				k => new Entry( k, factory, null, GetNewExpiration() ),
+				k => new Entry( k, factory, GetNewExpiration() ),
 				( k, entry ) => {
 					entry.SetFactory( factory );
 					entry.UpdateTtl( GetNewExpiration() );

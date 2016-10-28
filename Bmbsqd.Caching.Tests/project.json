@@ -4,7 +4,9 @@
 	"testRunner": "xunit",
 
 	"dependencies": {
-		"Bmbsqd.Caching": "1.0.0-*",
+		"Bmbsqd.Caching": {
+			"target": "project"
+		},
 		"Microsoft.NETCore.App": {
 			"type": "platform",
 			"version": "1.0.0"

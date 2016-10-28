@@ -84,57 +84,6 @@ namespace Bmbsqd.Caching.Tests {
 			} ) );
 		}
 
-
-		[Fact]
-		public async Task FastTaskFirstThenSlowTask()
-		{
-			var c = new AsyncCache<string, string>( TimeSpan.FromMilliseconds( 2000 ), false, true );
-
-			// fast task returns world
-			// slow task returns universe
-			Assert.Equal( "world", await c.GetOrAddAsync( "hello", async k => {
-				// A completed task is always returned
-				// So to prevent that, we have to delay here :-)
-				await Task.Delay( 25 );
-				return "universe";
-			}, k => Task.FromResult( "world" ) ) );
-
-
-			// Wait for slow task to materialize
-			await Task.Delay( 200 );
-
-			// Make sure that the cache slow task is now returning the expected 'universe'
-			Assert.Equal( "universe", await c.GetOrAddAsync( "hello", k => Task.FromResult( "this-should-never-be-materialized" ) ) );
-		}
-
-		[Fact]
-		public async Task NullFastTaskShouldBeIgnored()
-		{
-			var c = new AsyncCache<string, string>( TimeSpan.FromMilliseconds( 2000 ), false, true );
-
-			Assert.Equal( "universe", await c.GetOrAddAsync( "hello", async k => {
-				// A completed task is always returned
-				// So to prevent that, we have to delay here :-)
-				await Task.Delay( 25 );
-				return "universe";
-			}, k => null ) );
-		}
-
-
-		[Fact]
-		public async Task SingleAsyncCache()
-		{
-			var c = new SingleAsyncCache<string>( TimeSpan.FromSeconds( 1 ) );
-			Assert.Equal( "world", await c.GetOrAddAsync( () => Task.FromResult( "world" ) ) );
-			Assert.Equal( "world", await c.GetOrAddAsync( () => Task.FromResult( "no-no-no" ) ) ); // should still be "world"
-
-			await Task.Delay( TimeSpan.FromSeconds( 1.5 ) );
-			CacheTimer.InvalidateExpiredCacheItems();
-			//c.InvalidateExpiredItems();
-
-			Assert.Equal( "universe", await c.GetOrAddAsync( () => Task.FromResult( "universe" ) ) );
-		}
-
 		public class D : IDisposable {
 			public void Dispose()
 			{

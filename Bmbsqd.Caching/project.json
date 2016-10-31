@@ -1,5 +1,6 @@
 ﻿{
-	"name":  "bmbsqd-caching",
+	"name": "bmbsqd-caching",
+	"title": "Async Caching",
 	"version": "1.0.0-*",
 	"copyright": "© Bombsquad Inc 2016",
 	"description": "Caching done right, with async support",
@@ -8,12 +9,13 @@
 	"packOptions": {
 		"iconUrl": "http://www.gravatar.com/avatar/778137d42770f739df317b3cde5454ed.png?s=128",
 		"licenseUrl": "http://opensource.org/licenses/MIT",
+		"projectUrl": "https://github.com/bmbsqd/bmbsqd-caching",
 		"owners": [ "BMBSQD" ],
 		"summary": "Simple, efficient caching done right",
 		"tags": [ "cache", "async" ],
 		"repository": {
 			"type": "git",
-			"url": "http://github.com/bmbsqd/caching"
+			"url": "http://github.com/bmbsqd/bmbsqd-caching"
 		}
 	},
 

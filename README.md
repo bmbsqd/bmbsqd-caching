@@ -5,6 +5,12 @@ Use what you want as long as, you know, http://opensource.org/licenses/MIT
 
 
 
+### INSTALL 
+
+Via NuGet: https://www.nuget.org/packages/bmbsqd.caching
+
+
+
 Usage Examples:
 
 ### 1. Simple

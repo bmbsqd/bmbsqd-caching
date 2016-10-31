@@ -1,7 +1,7 @@
 ﻿{
-	"name": "bmbsqd-caching",
-	"title": "Async Caching",
-	"version": "1.0.0-*",
+	"name": "Bmbsqd.Caching",
+	"title": "Async and Sync Cache",
+	"version": "1.0.1-*",
 	"copyright": "© Bombsquad Inc 2016",
 	"description": "Caching done right, with async support",
 	"authors": [ "Bombsquad Inc" ],

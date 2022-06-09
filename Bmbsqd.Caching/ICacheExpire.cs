@@ -1,7 +1,6 @@
-namespace Bmbsqd.Caching
+namespace Bmbsqd.Caching;
+
+internal interface ICacheExpire
 {
-	internal interface ICacheExpire
-	{
-		void InvalidateExpiredItems();
-	}
+	void InvalidateExpiredItems();
 }

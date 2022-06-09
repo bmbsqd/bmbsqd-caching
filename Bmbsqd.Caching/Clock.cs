@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace Bmbsqd.Caching
+namespace Bmbsqd.Caching;
+
+internal class Clock
 {
-	internal class Clock
-	{
-		public static long Current() => DateTime.UtcNow.Ticks;
-	}
+	public static long Current() => DateTime.UtcNow.Ticks;
 }

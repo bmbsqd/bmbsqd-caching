@@ -1,30 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <Description>Caching done right, with async support</Description>
-    <Copyright>© Bombsquad Inc 2017</Copyright>
-    <AssemblyTitle>Async and Sync Cache</AssemblyTitle>
-    <VersionPrefix>1.0.2</VersionPrefix>
-    <Authors>Bombsquad Inc</Authors>
-    <TargetFramework>netstandard1.3</TargetFramework>
-    <AssemblyName>Bmbsqd.Caching</AssemblyName>
-    <PackageId>Bmbsqd.Caching</PackageId>
-    <PackageTags>cache;async</PackageTags>
-    <PackageIconUrl>http://www.gravatar.com/avatar/778137d42770f739df317b3cde5454ed.png?s=128</PackageIconUrl>
-    <PackageProjectUrl>https://github.com/bmbsqd/bmbsqd-caching</PackageProjectUrl>
-    <PackageLicenseUrl>http://opensource.org/licenses/MIT</PackageLicenseUrl>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>http://github.com/bmbsqd/bmbsqd-caching</RepositoryUrl>
-    <PackageReleaseNotes>Updated package dependencies</PackageReleaseNotes>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-  </PropertyGroup>
+    <PropertyGroup>
+        <Description>Caching done right, with async support</Description>
+        <Copyright>© Bombsquad Inc 2017</Copyright>
+        <AssemblyTitle>Async and Sync Cache</AssemblyTitle>
+        <VersionPrefix>1.0.3</VersionPrefix>
+        <Authors>Bombsquad Inc</Authors>
+        <TargetFramework>net6.0</TargetFramework>
+        <AssemblyName>Bmbsqd.Caching</AssemblyName>
+        <PackageId>Bmbsqd.Caching</PackageId>
+        <PackageTags>cache;async</PackageTags>
+        <PackageIcon>icon.png</PackageIcon>
+        <PackageProjectUrl>https://github.com/bmbsqd/bmbsqd-caching</PackageProjectUrl>
+        <PackageLicense>MIT</PackageLicense>
+        <RepositoryType>git</RepositoryType>
+        <RepositoryUrl>http://github.com/bmbsqd/bmbsqd-caching</RepositoryUrl>
+        <PackageReleaseNotes>Updated package dependencies</PackageReleaseNotes>
+        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="System.Threading.Tasks" Version="4.3.0" />
-    <PackageReference Include="System.Threading.Timer" Version="4.3.0" />
-    <PackageReference Include="System.Threading" Version="4.3.0" />
-    <PackageReference Include="System.Linq" Version="4.3.0" />
-    <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
-  </ItemGroup>
+    <ItemGroup>
+        <None Include="icon.png" Pack="true" PackagePath="\"/>
+    </ItemGroup>
 
 </Project>

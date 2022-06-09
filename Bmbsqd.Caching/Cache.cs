@@ -1,87 +1,86 @@
 using System;
 
-namespace Bmbsqd.Caching
+namespace Bmbsqd.Caching;
+
+public interface ICache<TKey, TValue> : ICacheInvalidate<TKey>, ICacheUpdate<TKey, TValue>
 {
-	public interface ICache<TKey, TValue> : ICacheInvalidate<TKey>, ICacheUpdate<TKey, TValue>
-	{
-		TValue GetOrAdd( TKey key, Func<TKey, TValue> factory );
-		TValue AddOrUpdate( TKey key, Func<TKey, TValue> factory );
-	}
+	TValue GetOrAdd( TKey key, Func<TKey, TValue> factory );
+	TValue AddOrUpdate( TKey key, Func<TKey, TValue> factory );
+}
 
-	public class Cache<TKey, TValue> : CacheBase<TKey, TValue, Cache<TKey, TValue>.Entry>, ICache<TKey, TValue>
+public class Cache<TKey, TValue> : CacheBase<TKey, TValue, Cache<TKey, TValue>.Entry>, ICache<TKey, TValue>
+{
+	public class Entry : EntryBase
 	{
-		public class Entry : EntryBase
+		private Func<TKey, TValue> _factory;
+		private TValue _value;
+
+		public Entry( TKey key, Func<TKey, TValue> factory, long validUntil )
+			: base( key, validUntil )
 		{
-			private Func<TKey, TValue> _factory;
-			private TValue _value;
+			_factory = factory;
+		}
 
-			public Entry( TKey key, Func<TKey, TValue> factory, long validUntil )
-				: base( key, validUntil )
-			{
-				_factory = factory;
-			}
-
-			public TValue GetValue()
-			{
-				if( _factory != null ) {
-					lock( this ) {
-						if( _factory != null ) {
-							_value = _factory( _key );
-							_factory = null;
-						}
+		public TValue GetValue() {
+			if( _factory is not null ) {
+				lock( this ) {
+					// ReSharper disable once ConditionIsAlwaysTrueOrFalse
+					if( _factory is not null ) {
+						_value = _factory( _key );
+						_factory = null;
 					}
 				}
-				return _value;
 			}
-
-			public override bool TryUpdateValue( TValue value )
-			{
-				_value = value;
-				return true;
-			}
-
-			public void SetFactory( Func<TKey, TValue> factory )
-			{
-				_factory = factory;
-			}
-
-			public TValue UnsafeValue => _value;
+			return _value;
 		}
 
-		public Cache( TimeSpan ttl )
-			: base( ttl )
+		public override bool TryUpdateValue( TValue value )
 		{
+			_value = value;
+			return true;
 		}
 
-		public TValue GetOrAdd( TKey key, Func<TKey, TValue> factory )
+		public void SetFactory( Func<TKey, TValue> factory )
 		{
-			var created = new Entry( key, factory, GetNewExpiration() );
-			var entry = _items.GetOrAdd( key, created );
-			if( entry == created ) {
-				NotifyAdded( key );
-			}
-
-			return entry.GetValue();
+			_factory = factory;
 		}
 
-		public TValue AddOrUpdate( TKey key, Func<TKey, TValue> factory )
-		{
-			var result = _items.AddOrUpdate( key,
-				k => new Entry( k, factory, GetNewExpiration() ),
-				( k, entry ) => {
-					entry.SetFactory( factory );
-					entry.UpdateTtl( GetNewExpiration() );
-					return entry;
-				} );
+		public TValue UnsafeValue => _value;
+	}
 
-			return result.GetValue();
+	public Cache( TimeSpan ttl )
+		: base( ttl )
+	{
+	}
+
+	public TValue GetOrAdd( TKey key, Func<TKey, TValue> factory )
+	{
+		var created = new Entry( key, factory, GetNewExpiration() );
+		var entry = _items.GetOrAdd( key, created );
+		if( entry == created ) {
+			NotifyAdded( key );
 		}
 
-		protected override void NotifyRemoved( TKey key, Entry entry )
-		{
-			var value = entry.UnsafeValue;
-			TryDispose( value );
-			base.NotifyRemoved( key, entry );
-		}
+		return entry.GetValue();
+	}
+
+	public TValue AddOrUpdate( TKey key, Func<TKey, TValue> factory )
+	{
+		var result = _items.AddOrUpdate( key,
+			k => new Entry( k, factory, GetNewExpiration() ),
+			( k, entry ) => {
+				entry.SetFactory( factory );
+				entry.UpdateTtl( GetNewExpiration() );
+				return entry;
+			} );
+
+		return result.GetValue();
+	}
+
+	protected override void NotifyRemoved( TKey key, Entry entry )
+	{
+		var value = entry.UnsafeValue;
+		TryDispose( value );
+		base.NotifyRemoved( key, entry );
 	}
 }

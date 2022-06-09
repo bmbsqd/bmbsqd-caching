@@ -12,15 +12,22 @@
         <PackageTags>cache;async</PackageTags>
         <PackageIcon>icon.png</PackageIcon>
         <PackageProjectUrl>https://github.com/bmbsqd/bmbsqd-caching</PackageProjectUrl>
-        <PackageLicense>MIT</PackageLicense>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <RepositoryType>git</RepositoryType>
-        <RepositoryUrl>http://github.com/bmbsqd/bmbsqd-caching</RepositoryUrl>
+        <RepositoryUrl>https://github.com/bmbsqd/bmbsqd-caching</RepositoryUrl>
         <PackageReleaseNotes>Updated package dependencies</PackageReleaseNotes>
         <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="icon.png" Pack="true" PackagePath="\"/>
+        <None Include="icon.png" Pack="true" PackagePath="\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\README.md">
+        <Link>README.md</Link>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>

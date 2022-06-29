@@ -22,6 +22,51 @@ public class CacheTest
 	}
 
 	[Fact]
+	public void SyncCacheTryUpdateExisting() {
+		var c = new Cache<string, int>(TimeSpan.FromHours(50000));
+
+		Assert.Equal(1, c.GetOrAdd("hello", k => 1));
+		Assert.True(c.TryUpdate("hello", (k, v) => v + 1));
+
+		// Verify
+		var result = c.GetOrAdd("hello", _ => throw new Exception("WTF!"));
+		Assert.Equal(2, result);
+	}
+
+	[Fact]
+	public void SyncCacheTryUpdateNonExisting() {
+		var c = new Cache<string, string>(TimeSpan.FromHours(50000));
+
+		Assert.False(c.TryUpdate("hello", (k, v) => "universe"));
+	}
+
+
+	[Fact]
+	public async Task AsyncCacheTryUpdateExisting1() {
+		var c = new AsyncCache<string, int>(TimeSpan.FromHours(50000));
+
+		Assert.Equal(1, await c.GetOrAddAsync("hello", k => Task.FromResult(1)));
+		Assert.True(c.TryUpdate("hello", async (k, v) => await v + 1));
+
+		// Verify
+		var result = await c.GetOrAddAsync("hello", _ => throw new Exception("WTF!"));
+		Assert.Equal(2, result);
+	}
+
+	[Fact]
+	public async Task AsyncCacheTryUpdateExisting2() {
+		var c = new AsyncCache<string, int>(TimeSpan.FromHours(50000));
+
+		Assert.Equal(1, await c.GetOrAddAsync("hello", k => Task.FromResult(1)));
+		Assert.True(c.TryUpdate("hello", (k, v) => v + 1));
+
+		// Verify
+		var result = await c.GetOrAddAsync("hello", _ => throw new Exception("WTF!"));
+		Assert.Equal(2, result);
+	}
+
+
+	[Fact]
 	public async Task AsyncCache() {
 		var c = new AsyncCache<string, string>(TimeSpan.FromSeconds(1));
 
@@ -124,14 +169,14 @@ public class CacheTest
 	}
 
 	[Fact]
-	public async Task FaultedTasksShouldBeInvalidatedFaster() {
+	public void FaultedTasksShouldBeInvalidatedFaster() {
 		var c = new AsyncCache<string, string>(TimeSpan.FromMinutes(1), true);
 
 		var t = c.GetOrAddAsync("a", _ => Task.FromException<string>(new Exception("Hello World")));
-		
+
 		Assert.True(t.IsFaulted);
 		Assert.Equal(1, c.Count);
-		
+
 		c.InvalidateExpiredItems();
 		Assert.Equal(0, c.Count);
 	}

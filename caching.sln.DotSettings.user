@@ -3,4 +3,6 @@
   &lt;TestAncestor&gt;
     &lt;TestId&gt;xUnit::EA334FD6-E6F9-4175-9AF7-B8225E6204C4::net6.0::Bmbsqd.Caching.Tests.CacheTest&lt;/TestId&gt;
   &lt;/TestAncestor&gt;
-&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Housekeeping/UnitTestingMru/UnitTestRunner/EnvironmentVariablesIndexed/=AWS_005FPROFILE/@EntryIndexedValue"></s:String>
+	<s:Boolean x:Key="/Default/Housekeeping/UnitTestingMru/UnitTestRunner/EnvironmentVariablesIndexed/=AWS_005FPROFILE/@EntryIndexRemoved">True</s:Boolean></wpf:ResourceDictionary>

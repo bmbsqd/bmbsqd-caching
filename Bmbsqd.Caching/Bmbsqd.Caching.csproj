@@ -2,9 +2,9 @@
 
     <PropertyGroup>
         <Description>Caching done right, with async support</Description>
-        <Copyright>© Bombsquad Inc 2017</Copyright>
+        <Copyright>© Bombsquad Inc</Copyright>
         <AssemblyTitle>Async and Sync Cache</AssemblyTitle>
-        <VersionPrefix>1.0.3</VersionPrefix>
+        <VersionPrefix>1.0.4</VersionPrefix>
         <Authors>Bombsquad Inc</Authors>
         <TargetFramework>net6.0</TargetFramework>
         <AssemblyName>Bmbsqd.Caching</AssemblyName>

@@ -1,12 +1,18 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Bmbsqd.Caching;
 
-public interface IAsyncCache<TKey, TValue> : ICache, ICacheInvalidate<TKey>, ICacheUpdate<TKey, TValue>, ICacheUpdate<TKey, Task<TValue>>
+public interface IAsyncCache<TKey, TValue> :
+	ICache,
+	ICacheInvalidate<TKey>,
+	ICacheUpdate<TKey, TValue>,
+	ICacheUpdate<TKey, Task<TValue>>
 {
 	Task<TValue> GetOrAddAsync(TKey key, Func<TKey, Task<TValue>> factory);
 	Task<TValue> AddOrUpdateAsync(TKey key, Func<TKey, Task<TValue>> factory);
+	bool TryGetValue(TKey key, out Task<TValue> value);
 }
 
 public class AsyncCache<TKey, TValue> : CacheBase<TKey, TValue, AsyncCache<TKey, TValue>.Entry>, IAsyncCache<TKey, TValue>
@@ -25,11 +31,11 @@ public class AsyncCache<TKey, TValue> : CacheBase<TKey, TValue, AsyncCache<TKey,
 
 		public Task<TValue> GetTask() {
 			var task = _task;
-			if( _factory != null ) {
+			if( Volatile.Read(ref _factory) is not null ) {
 				lock(this) {
-					if( _factory != null ) {
-						_task = task = _factory(_key);
-						_factory = null;
+					if( Volatile.Read(ref _factory) is { } factory ) {
+						_task = task = factory(_key);
+						Volatile.Write(ref _factory, null);
 					}
 				}
 			}
@@ -104,12 +110,20 @@ public class AsyncCache<TKey, TValue> : CacheBase<TKey, TValue, AsyncCache<TKey,
 		return result.GetTask();
 	}
 
-	public bool TryUpdate(TKey key, Task<TValue> value) {
+	public bool TryGetValue(TKey key, out Task<TValue> value) {
 		if( _items.TryGetValue(key, out var entry) ) {
-			if( entry.TryUpdateValue(value) ) {
-				entry.UpdateTtl(GetNewExpiration());
-				return true;
-			}
+			value = entry.GetTask();
+			return true;
+		}
+
+		value = null;
+		return false;
+	}
+
+	public bool TryUpdate(TKey key, Task<TValue> value) {
+		if( _items.TryGetValue(key, out var entry) && entry.TryUpdateValue(value) ) {
+			entry.UpdateTtl(GetNewExpiration());
+			return true;
 		}
 
 		return false;
@@ -122,5 +136,27 @@ public class AsyncCache<TKey, TValue> : CacheBase<TKey, TValue, AsyncCache<TKey,
 		}
 
 		base.NotifyRemoved(key, entry);
+	}
+
+	public bool TryUpdate(TKey key, Func<TKey, Task<TValue>, Task<TValue>> updater) {
+		if( _items.TryGetValue(key, out var entry) ) {
+			var existingTask = entry.GetTask();
+			entry.SetFactory(async k => await updater(k, existingTask));
+			entry.UpdateTtl(GetNewExpiration());
+			return true;
+		}
+
+		return false;
+	}
+
+	public bool TryUpdate(TKey key, Func<TKey, TValue, TValue> updater) {
+		if( _items.TryGetValue(key, out var entry) ) {
+			var existingTask = entry.GetTask();
+			entry.SetFactory(async k => updater(k, await existingTask));
+			entry.UpdateTtl(GetNewExpiration());
+			return true;
+		}
+
+		return false;
 	}
 }

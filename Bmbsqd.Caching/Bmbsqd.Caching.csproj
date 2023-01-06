@@ -24,10 +24,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\README.md">
+      <None Include="..\README.md" Pack="true" PackagePath="\">
         <Link>README.md</Link>
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
+      </None>
     </ItemGroup>
 
 </Project>

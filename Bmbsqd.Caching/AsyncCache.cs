@@ -33,9 +33,10 @@ public class AsyncCache<TKey, TValue> : CacheBase<TKey, TValue, AsyncCache<TKey,
 			var task = _task;
 			if( Volatile.Read(ref _factory) is not null ) {
 				lock(this) {
-					if( Volatile.Read(ref _factory) is { } factory ) {
+					// Still have to retain the lock here,
+					// because the _task needs to be set too, and we're locking for `_task`
+					if( Interlocked.Exchange(ref _factory, null) is { } factory ) {
 						_task = task = factory(_key);
-						Volatile.Write(ref _factory, null);
 					}
 				}
 			}
@@ -43,7 +44,15 @@ public class AsyncCache<TKey, TValue> : CacheBase<TKey, TValue, AsyncCache<TKey,
 			return task;
 		}
 
-		private bool IsFaulted => _task.IsFaulted;
+		public Task<TValue> UnsafeGetTask() {
+			if( Interlocked.Exchange(ref _factory, null) is { } factory ) {
+				return _task = factory(_key);
+			}
+
+			return _task;
+		}
+
+		private bool IsFaulted => _task is { IsFaulted: true };
 
 		public override bool IsExpired(long time) {
 			return IsFaulted || base.IsExpired(time);
@@ -67,6 +76,7 @@ public class AsyncCache<TKey, TValue> : CacheBase<TKey, TValue, AsyncCache<TKey,
 		public void UpdateFrom(Entry entry) {
 			lock(this) {
 				// this order is important
+				// when a new `_factory` exists, this will always be used for new tasks
 				_factory = entry._factory;
 				_validUntil = entry._validUntil;
 			}
@@ -79,16 +89,24 @@ public class AsyncCache<TKey, TValue> : CacheBase<TKey, TValue, AsyncCache<TKey,
 	}
 
 	public Task<TValue> GetOrAddAsync(TKey key, Func<TKey, Task<TValue>> factory) {
-		var created = new Entry(key, factory, GetNewExpiration());
-		var entry = _items.GetOrAdd(key, created);
+		var now = Clock.Current();
+		
+		if( _items.TryGetValue(key, out var fastEntry) ) {
+			// Optimistic read
+			if( !fastEntry.IsExpired(now) ) {
+				return fastEntry.GetTask();
+			}
+		}
 
+		var createdEntry = new Entry(key, factory, GetNewExpiration());
+		var entry = _items.GetOrAdd(key, createdEntry);
 		var result = entry.GetTask();
 
-		if( ReferenceEquals(entry, created) ) {
+		if( ReferenceEquals(entry, createdEntry) ) {
 			NotifyAdded(key);
 		}
-		else if( entry.IsExpired(Clock.Current()) ) {
-			entry.UpdateFrom(created);
+		else if( entry.IsExpired(now) ) {
+			entry.UpdateFrom(createdEntry);
 			var createdTask = entry.GetTask();
 			if( !_returnExpiredItems || createdTask.IsCompleted ) {
 				result = createdTask;
@@ -98,14 +116,18 @@ public class AsyncCache<TKey, TValue> : CacheBase<TKey, TValue, AsyncCache<TKey,
 		return result;
 	}
 
+	private readonly record struct FactoryWithExpiration(Func<TKey, Task<TValue>> ValueFactory, long Expiration);
+
 	public Task<TValue> AddOrUpdateAsync(TKey key, Func<TKey, Task<TValue>> factory) {
 		var result = _items.AddOrUpdate(key,
-			k => new Entry(k, factory, GetNewExpiration()),
-			(k, entry) => {
-				entry.SetFactory(factory);
-				entry.UpdateTtl(GetNewExpiration());
+			static (k, x) => new Entry(k, x.ValueFactory, x.Expiration),
+			static (_, entry, x) => {
+				entry.SetFactory(x.ValueFactory);
+				entry.UpdateTtl(x.Expiration);
 				return entry;
-			});
+			},
+			new FactoryWithExpiration(factory, GetNewExpiration())
+		);
 
 		return result.GetTask();
 	}
@@ -140,8 +162,13 @@ public class AsyncCache<TKey, TValue> : CacheBase<TKey, TValue, AsyncCache<TKey,
 
 	public bool TryUpdate(TKey key, Func<TKey, Task<TValue>, Task<TValue>> updater) {
 		if( _items.TryGetValue(key, out var entry) ) {
-			var existingTask = entry.GetTask();
-			entry.SetFactory(async k => await updater(k, existingTask));
+			lock(entry) {
+				var existingTask = entry.UnsafeGetTask();
+				// Note, the existing task MUST be obtained before setting the new
+				// factory, or this will end up as an un-ending loop.
+				entry.SetFactory(k => updater(k, existingTask));
+			}
+
 			entry.UpdateTtl(GetNewExpiration());
 			return true;
 		}
@@ -151,8 +178,13 @@ public class AsyncCache<TKey, TValue> : CacheBase<TKey, TValue, AsyncCache<TKey,
 
 	public bool TryUpdate(TKey key, Func<TKey, TValue, TValue> updater) {
 		if( _items.TryGetValue(key, out var entry) ) {
-			var existingTask = entry.GetTask();
-			entry.SetFactory(async k => updater(k, await existingTask));
+			lock(entry) {
+				var existingTask = entry.UnsafeGetTask();
+				// Note, the existing task MUST be obtained before setting the new
+				// factory, or this will end up as an un-ending loop.
+				entry.SetFactory(async k => updater(k, await existingTask));
+			}
+
 			entry.UpdateTtl(GetNewExpiration());
 			return true;
 		}

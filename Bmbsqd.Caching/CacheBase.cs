@@ -8,8 +8,7 @@ namespace Bmbsqd.Caching;
 public abstract class CacheBase<TValue> {
 	protected static void TryDispose( TValue value )
 	{
-		var disposable = value as IDisposable;
-		if( disposable != null ) {
+		if( value is IDisposable disposable ) {
 			try {
 				disposable.Dispose();
 			}

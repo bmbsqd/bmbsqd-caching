@@ -62,13 +62,14 @@ public class Cache<TKey, TValue> : CacheBase<TKey, TValue, Cache<TKey, TValue>.E
 	}
 
 	public TValue AddOrUpdate(TKey key, Func<TKey, TValue> factory) {
+		var expiration = GetNewExpiration();
 		var result = _items.AddOrUpdate(key,
-			k => new Entry(k, factory, GetNewExpiration()),
-			(k, entry) => {
-				entry.SetFactory(factory);
-				entry.UpdateTtl(GetNewExpiration());
+			static (k, f) => new Entry(k, f.factory, f.expiration),
+			static (k, entry, f) => {
+				entry.SetFactory(f.factory);
+				entry.UpdateTtl(f.expiration);
 				return entry;
-			});
+			}, (factory, expiration));
 
 		return result.GetValue();
 	}
@@ -81,8 +82,13 @@ public class Cache<TKey, TValue> : CacheBase<TKey, TValue, Cache<TKey, TValue>.E
 
 	public bool TryUpdate(TKey key, Func<TKey, TValue, TValue> updater) {
 		if( _items.TryGetValue(key, out var entry) ) {
-			var existingValue = entry.GetValue();
-			entry.SetFactory(k => updater(k, existingValue));
+			lock(entry) {
+				var existingValue = entry.GetValue();
+				// Note, the existing value MUST be obtained before setting the new
+				// factory, or this will end up as an un-ending loop.
+				entry.SetFactory(k => updater(k, existingValue));
+			}
+
 			entry.UpdateTtl(GetNewExpiration());
 			return true;
 		}

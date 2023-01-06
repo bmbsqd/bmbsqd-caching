@@ -2,7 +2,7 @@
 
 namespace Bmbsqd.Caching;
 
-internal class Clock
+internal static class Clock
 {
 	public static long Current() => DateTime.UtcNow.Ticks;
 }

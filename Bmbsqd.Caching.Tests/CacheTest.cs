@@ -42,6 +42,36 @@ public class CacheTest
 
 
 	[Fact]
+	public async Task AsyncCacheTwoResultsGetSlowItemWithFactory() {
+		var c = new AsyncCache<string, int>(TimeSpan.FromHours(50000), true, false);
+		var t1 = c.GetOrAddAsync("hello", async k => {
+			await Task.Delay(1000);
+			return 1;
+		});
+
+
+		// Garbage tasks
+		var tasks = new List<Task>();
+		for( var i = 0; i < 500; i++ ) {
+			tasks.Add(
+				c.GetOrAddAsync("hello", _ => Task.FromResult(20))
+			);
+		}
+
+		var t2 = c.GetOrAddAsync("hello", async k => {
+			await Task.Delay(1000);
+			return 2;
+		});
+
+
+		await Task.WhenAll(tasks);
+
+		Assert.Equal(1, await t1);
+		Assert.Equal(1, await t2); // should return the FIRST factory result
+	}
+
+
+	[Fact]
 	public async Task AsyncCacheTryUpdateExisting1() {
 		var c = new AsyncCache<string, int>(TimeSpan.FromHours(50000));
 

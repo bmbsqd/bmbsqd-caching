@@ -4,9 +4,10 @@
         <Description>Caching done right, with async support</Description>
         <Copyright>© Bombsquad Inc</Copyright>
         <AssemblyTitle>Async and Sync Cache</AssemblyTitle>
-        <VersionPrefix>1.0.6</VersionPrefix>
+        <VersionPrefix>1.0.7</VersionPrefix>
+        <Nullable>enable</Nullable>
         <Authors>Bombsquad Inc</Authors>
-        <TargetFramework>net7.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <AssemblyName>Bmbsqd.Caching</AssemblyName>
         <PackageId>Bmbsqd.Caching</PackageId>
         <PackageTags>cache;async</PackageTags>

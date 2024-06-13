@@ -4,7 +4,7 @@
         <Description>Caching done right, with async support</Description>
         <Copyright>© Bombsquad Inc</Copyright>
         <AssemblyTitle>Async and Sync Cache</AssemblyTitle>
-        <VersionPrefix>1.0.7</VersionPrefix>
+        <VersionPrefix>1.0.8</VersionPrefix>
         <Nullable>enable</Nullable>
         <Authors>Bombsquad Inc</Authors>
         <TargetFramework>net8.0</TargetFramework>
